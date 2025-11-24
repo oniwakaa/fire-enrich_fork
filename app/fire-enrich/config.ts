@@ -26,6 +26,8 @@ export const FIRE_ENRICH_CONFIG = {
   // Feature flags
   FEATURES: {
     IS_UNLIMITED: isUnlimitedMode,
+    FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE:
+      process.env.FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE === "true",
   },
 } as const;
 

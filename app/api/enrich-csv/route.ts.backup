@@ -1,0 +1,219 @@
+import { NextRequest, NextResponse } from "next/server";
+import Papa from "papaparse";
+import { AgentEnrichmentStrategy } from "@/lib/strategies/agent-enrichment-strategy";
+import type { CSVRow, EnrichmentField, RowEnrichmentResult } from "@/lib/types";
+
+export const runtime = "nodejs";
+
+// Standard enrichment fields with new employee contacts, business partners, and investments
+const STANDARD_FIELDS: EnrichmentField[] = [
+  {
+    name: "company_name",
+    displayName: "Company Name",
+    description: "The name of the company",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "company_description",
+    displayName: "Company Description",
+    description: "A brief description of what the company does",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "industry",
+    displayName: "Industry",
+    description: "The industry or sector the company operates in",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "employee_count",
+    displayName: "Employee Count",
+    description: "Approximate number of employees",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "location",
+    displayName: "Location",
+    description: "Company headquarters location",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "website",
+    displayName: "Website",
+    description: "Company website URL",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "investments",
+    displayName: "Investments",
+    description: "Investment information, funding rounds, and investor details",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "employee_contacts",
+    displayName: "Employee Contacts",
+    description:
+      "Senior and mid-level employee names and titles from team/leadership pages",
+    type: "string",
+    required: false,
+  },
+  {
+    name: "business_partners",
+    displayName: "Business Partners",
+    description: "Partner companies, integrations, and ecosystem relationships",
+    type: "string",
+    required: false,
+  },
+];
+
+export async function POST(request: NextRequest) {
+  try {
+    console.log("[CSV_API] Starting CSV enrichment request");
+
+    const formData = await request.formData();
+    const file = formData.get("file") as File | null;
+    const emailColumn = formData.get("emailColumn") as string | null;
+    const fieldsParam = formData.get("fields") as string | null;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      return NextResponse.json(
+        { error: "Invalid file type. Please upload a CSV file" },
+        { status: 400 },
+      );
+    }
+
+    if (!emailColumn) {
+      return NextResponse.json(
+        { error: "Email column is required" },
+        { status: 400 },
+      );
+    }
+
+    // Parse CSV
+    const csvText = await file.text();
+    const parseResult = Papa.parse(csvText, { header: true });
+    const parsedRows = parseResult.data as CSVRow[];
+
+    if (parsedRows.length === 0) {
+      return NextResponse.json(
+        { error: "No data found in CSV file" },
+        { status: 400 },
+      );
+    }
+
+    // Check if email column exists
+    const columns = Object.keys(parsedRows[0]);
+    if (!columns.includes(emailColumn)) {
+      return NextResponse.json(
+        { error: `Email column "${emailColumn}" not found` },
+        { status: 400 },
+      );
+    }
+
+    // Determine fields to enrich
+    let fieldsToEnrich = STANDARD_FIELDS;
+    if (fieldsParam) {
+      try {
+        const requestedFields = JSON.parse(fieldsParam);
+        fieldsToEnrich = STANDARD_FIELDS.filter(
+          (field) =>
+            requestedFields.includes(field.name) ||
+            requestedFields.includes(field.displayName),
+        );
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid fields parameter" },
+          { status: 400 },
+        );
+      }
+    }
+
+    // Check environment variables
+    const openaiApiKey = process.env.OPENAI_API_KEY;
+    const firecrawlApiKey = process.env.FIRECRAWL_API_KEY;
+
+    if (!openaiApiKey || !firecrawlApiKey) {
+      return NextResponse.json(
+        { error: "Server configuration error: Missing API keys" },
+        { status: 500 },
+      );
+    }
+
+    // Initialize enrichment strategy
+    const enrichmentStrategy = new AgentEnrichmentStrategy(
+      openaiApiKey,
+      firecrawlApiKey,
+    );
+
+    console.log("[CSV_API] Processing", parsedRows.length, "rows");
+
+    // Process rows
+    const enrichedResults: CSVRow[] = [];
+    for (let i = 0; i < parsedRows.length; i++) {
+      const originalRow = parsedRows[i];
+      const enrichedRow: CSVRow = { ...originalRow };
+
+      try {
+        const result = await enrichmentStrategy.enrichRow(
+          originalRow,
+          fieldsToEnrich,
+          emailColumn,
+        );
+
+        if (result.enrichments) {
+          Object.entries(result.enrichments).forEach(
+            ([fieldName, enrichment]) => {
+              if (
+                enrichment &&
+                enrichment.value !== null &&
+                enrichment.value !== undefined
+              ) {
+                enrichedRow[fieldName] = String(enrichment.value);
+              }
+            },
+          );
+        }
+
+        enrichedRow["enrichment_status"] = result.status || "completed";
+      } catch (error) {
+        enrichedRow["enrichment_status"] = "error";
+        enrichedRow["enrichment_error"] =
+          error instanceof Error ? error.message : "Unknown error";
+      }
+
+      enrichedResults.push(enrichedRow);
+
+      // Add delay between requests
+      if (i < parsedRows.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
+
+    // Convert to CSV
+    const csv = Papa.unparse(enrichedResults);
+
+    return new NextResponse(csv, {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="enriched_${file.name}"`,
+      },
+    });
+  } catch (error) {
+    console.error("[CSV_API] Error:", error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Unknown error" },
+      { status: 500 },
+    );
+  }
+}

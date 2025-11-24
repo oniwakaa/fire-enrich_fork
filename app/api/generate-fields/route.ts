@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-import { zodResponseFormat } from 'openai/helpers/zod';
-import { z } from 'zod';
-import { FieldGenerationResponse } from '@/lib/types/field-generation';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
+import { FieldGenerationResponse } from "@/lib/types/field-generation";
 
 export async function POST(request: NextRequest) {
   try {
     const { prompt } = await request.json();
 
-    if (!prompt || typeof prompt !== 'string') {
+    if (!prompt || typeof prompt !== "string") {
       return NextResponse.json(
-        { error: 'Prompt is required' },
-        { status: 400 }
+        { error: "Prompt is required" },
+        { status: 400 },
       );
     }
 
     if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
+        { error: "OpenAI API key not configured" },
+        { status: 500 },
       );
     }
 
@@ -26,15 +26,17 @@ export async function POST(request: NextRequest) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
+    const model = process.env.OPENAI_MODEL || "gpt-oss:120b-cloud";
+
     const completion = await openai.chat.completions.create({
-      model: 'gpt-5',
+      model: model,
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: `You are an expert at understanding data enrichment needs and converting natural language requests into structured field definitions.
-          
+
           When the user describes what data they want to collect about companies, extract each distinct piece of information as a separate field.
-          
+
           Guidelines:
           - Use clear, professional field names (e.g., "Company Size" not "size")
           - Provide helpful descriptions that explain what data should be found
@@ -44,40 +46,43 @@ export async function POST(request: NextRequest) {
             - boolean: for yes/no questions
             - array: for lists of items
           - Include example values when helpful
-          - Common fields include: Company Name, Description, Industry, Employee Count, Founded Year, Headquarters Location, Website, Funding Amount, etc.`
+          - Common fields include: Company Name, Description, Industry, Employee Count, Founded Year, Headquarters Location, Website, Funding Amount, etc.`,
         },
         {
-          role: 'user',
-          content: prompt
-        }
+          role: "user",
+          content: prompt,
+        },
       ],
       response_format: {
-        type: 'json_schema',
+        type: "json_schema",
         json_schema: {
-          name: 'field_generation',
+          name: "field_generation",
           strict: true,
-          schema: zodResponseFormat(FieldGenerationResponse, 'field_generation').json_schema.schema
-        }
-      }
+          schema: zodResponseFormat(FieldGenerationResponse, "field_generation")
+            .json_schema.schema,
+        },
+      },
     });
 
     const message = completion.choices[0].message;
-    
+
     if (!message.content) {
-      throw new Error('No response content');
+      throw new Error("No response content");
     }
-    
-    const parsed = JSON.parse(message.content) as z.infer<typeof FieldGenerationResponse>;
+
+    const parsed = JSON.parse(message.content) as z.infer<
+      typeof FieldGenerationResponse
+    >;
 
     return NextResponse.json({
       success: true,
       data: parsed,
     });
   } catch (error) {
-    console.error('Field generation error:', error);
+    console.error("Field generation error:", error);
     return NextResponse.json(
-      { error: 'Failed to generate fields' },
-      { status: 500 }
+      { error: "Failed to generate fields" },
+      { status: 500 },
     );
   }
 }

@@ -1,53 +1,71 @@
-import { AgentOrchestrator } from '../agent-architecture';
-import type { CSVRow, EnrichmentField, RowEnrichmentResult, EnrichmentResult } from '../types';
-import { shouldSkipEmail, loadSkipList, getSkipReason } from '../utils/skip-list';
+import { AgentOrchestrator } from "../agent-architecture";
+import type {
+  CSVRow,
+  EnrichmentField,
+  RowEnrichmentResult,
+  EnrichmentResult,
+} from "../types";
+import {
+  shouldSkipEmail,
+  loadSkipList,
+  getSkipReason,
+} from "../utils/skip-list";
 
 export class AgentEnrichmentStrategy {
   private orchestrator: AgentOrchestrator;
-  
-  constructor(
-    openaiApiKey: string,
-    firecrawlApiKey: string,
-  ) {
+
+  constructor(openaiApiKey: string, firecrawlApiKey: string) {
     this.orchestrator = new AgentOrchestrator(firecrawlApiKey, openaiApiKey);
   }
-  
+
   async enrichRow(
     row: CSVRow,
     fields: EnrichmentField[],
     emailColumn: string,
+    cachedCompanyData?: Record<string, any>,
     onProgress?: (field: string, value: unknown) => void,
-    onAgentProgress?: (message: string, type: 'info' | 'success' | 'warning' | 'agent') => void
+    onAgentProgress?: (
+      message: string,
+      type: "info" | "success" | "warning" | "agent",
+    ) => void,
   ): Promise<RowEnrichmentResult> {
     const email = row[emailColumn];
-    console.log(`[AgentEnrichmentStrategy] Starting enrichment for email: ${email}`);
-    console.log(`[AgentEnrichmentStrategy] Requested fields: ${fields.map(f => f.name).join(', ')}`);
-    
+    console.log(
+      `[AgentEnrichmentStrategy] Starting enrichment for email: ${email}`,
+    );
+    console.log(
+      `[AgentEnrichmentStrategy] Requested fields: ${fields.map((f) => f.name).join(", ")}`,
+    );
+
     if (!email) {
-      console.log(`[AgentEnrichmentStrategy] No email found in column: ${emailColumn}`);
+      console.log(
+        `[AgentEnrichmentStrategy] No email found in column: ${emailColumn}`,
+      );
       return {
         rowIndex: 0,
         originalData: row,
         enrichments: {},
-        status: 'error',
-        error: 'No email found in specified column',
+        status: "error",
+        error: "No email found in specified column",
       };
     }
-    
+
     // Check skip list
     const skipList = await loadSkipList();
     if (shouldSkipEmail(email, skipList)) {
       const skipReason = getSkipReason(email, skipList);
-      console.log(`[AgentEnrichmentStrategy] Skipping email ${email}: ${skipReason}`);
+      console.log(
+        `[AgentEnrichmentStrategy] Skipping email ${email}: ${skipReason}`,
+      );
       return {
         rowIndex: 0,
         originalData: row,
         enrichments: {},
-        status: 'skipped',
+        status: "skipped",
         error: skipReason,
       };
     }
-    
+
     try {
       console.log(`[AgentEnrichmentStrategy] Delegating to AgentOrchestrator`);
       // Use the agent orchestrator for enrichment
@@ -55,10 +73,11 @@ export class AgentEnrichmentStrategy {
         row,
         fields,
         emailColumn,
+        cachedCompanyData,
         onProgress,
-        onAgentProgress
+        onAgentProgress,
       );
-      
+
       // Filter out null values to match the expected type
       const filteredEnrichments: Record<string, EnrichmentResult> = {};
       for (const [key, enrichment] of Object.entries(result.enrichments)) {
@@ -66,22 +85,24 @@ export class AgentEnrichmentStrategy {
           filteredEnrichments[key] = enrichment as EnrichmentResult;
         }
       }
-      
+
       const enrichedCount = Object.keys(filteredEnrichments).length;
-      console.log(`[AgentEnrichmentStrategy] Orchestrator returned ${enrichedCount} enriched fields`);
-      
+      console.log(
+        `[AgentEnrichmentStrategy] Orchestrator returned ${enrichedCount} enriched fields`,
+      );
+
       return {
         ...result,
-        enrichments: filteredEnrichments
+        enrichments: filteredEnrichments,
       };
     } catch (error) {
-      console.error('[AgentEnrichmentStrategy] Enrichment error:', error);
+      console.error("[AgentEnrichmentStrategy] Enrichment error:", error);
       return {
         rowIndex: 0,
         originalData: row,
         enrichments: {},
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        status: "error",
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }

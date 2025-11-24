@@ -1,0 +1,237 @@
+
+> fire-enrich-standalone@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Found lockfile missing swc dependencies, patching...
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: Failed to get registry from "pnpm".
+    at Array.map (<anonymous>) {
+  [cause]: Error: Command failed: pnpm config get registry 
+  /bin/sh: pnpm: command not found
+  
+      at Array.map (<anonymous>) {
+    status: 127,
+    signal: null,
+    output: [
+      null,
+      <Buffer >,
+      <Buffer 2f 62 69 6e 2f 73 68 3a 20 70 6e 70 6d 3a 20 63 6f 6d 6d 61 6e 64 20 6e 6f 74 20 66 6f 75 6e 64 0a>
+    ],
+    pid: 34569,
+    stdout: <Buffer >,
+    stderr: <Buffer 2f 62 69 6e 2f 73 68 3a 20 70 6e 70 6d 3a 20 63 6f 6d 6d 61 6e 64 20 6e 6f 74 20 66 6f 75 6e 64 0a>
+  }
+}
+ ⚠ Found lockfile missing swc dependencies, patching...
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+/bin/sh: pnpm: command not found
+ ⨯ Failed to patch lockfile, please try uninstalling and reinstalling next in this workspace
+Error: Failed to get registry from "pnpm".
+    at Array.map (<anonymous>) {
+  [cause]: Error: Command failed: pnpm config get registry 
+  /bin/sh: pnpm: command not found
+  
+      at Array.map (<anonymous>) {
+    status: 127,
+    signal: null,
+    output: [
+      null,
+      <Buffer >,
+      <Buffer 2f 62 69 6e 2f 73 68 3a 20 70 6e 70 6d 3a 20 63 6f 6d 6d 61 6e 64 20 6e 6f 74 20 66 6f 75 6e 64 0a>
+    ],
+    pid: 34577,
+    stdout: <Buffer >,
+    stderr: <Buffer 2f 62 69 6e 2f 73 68 3a 20 70 6e 70 6d 3a 20 63 6f 6d 6d 61 6e 64 20 6e 6f 74 20 66 6f 75 6e 64 0a>
+  }
+}
+   ▲ Next.js 15.3.2 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.178:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 749ms
+ ○ Compiling /api/enrich ...
+ ✓ Compiled /api/enrich in 581ms
+[ENRICHMENT] Processing 3 valid email records with batch orchestration
+[ENRICHMENT] Processing batch 1/1
+[BatchOrchestrator] Processing 3 emails
+[BatchOrchestrator] Found 1 unique domains
+[BatchOrchestrator] Processing new domain: blg.de
+[AgentEnrichmentStrategy] Starting enrichment for email: tina.allerheiligen@blg.de
+[AgentEnrichmentStrategy] Requested fields: company_name, company_description, website, role
+[AgentEnrichmentStrategy] Delegating to AgentOrchestrator
+[Orchestrator] Starting enrichment for email: tina.allerheiligen@blg.de
+[Orchestrator] Email context: domain=blg.de, company=Blg
+[Orchestrator] Categorizing 4 fields for agent assignment...
+[Orchestrator] Field categories: discovery=3, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Agents to be used: discovery-agent, general-agent
+[Orchestrator] Agent execution order: discovery-agent → general-agent
+[Orchestrator] Activating DISCOVERY-AGENT for fields: company_name, company_description, website
+[AGENT-DISCOVERY] Starting Discovery Phase
+[AGENT-DISCOVERY] Email: tina.allerheiligen@blg.de
+[AGENT-DISCOVERY] Domain: blg.de
+[AGENT-DISCOVERY] Fields to discover: company_name, company_description, website
+[AGENT-DISCOVERY] Attempting direct website scrape: https://blg.de
+(node:34576) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Firecrawl scrape failed for https://blg.de (attempt 1/3), retrying in 1000ms...
+Error: No response received while trying to scrape URL. This may be a network error or the server is unreachable.
+[AGENT-DISCOVERY] Missing fields after direct scrape: company_name, company_description, website
+[AGENT-DISCOVERY] Initiating search phase...
+[AGENT-DISCOVERY] Search queries to try: 5
+[AGENT-DISCOVERY] Searching: "blg.de" company official website
+[AGENT-DISCOVERY] Found 3 results for query
+[AGENT-DISCOVERY] Searching: site:blg.de about
+[AGENT-DISCOVERY] Found 3 results for query
+[AGENT-DISCOVERY] Total unique search results: 6
+[AGENT-DISCOVERY] Valid search results after filtering: 6
+[AGENT-DISCOVERY] Extracting from search results...
+[Orchestrator] DISCOVERY-AGENT completed, found 3 values
+[Orchestrator] Updated context with company name: BLG LOGISTICS GROUP
+[Orchestrator] Activating GENERAL-AGENT for fields: role
+[AGENT-GENERAL] Starting General Information Phase
+[AGENT-GENERAL] Company name: BLG LOGISTICS GROUP
+[AGENT-GENERAL] Company domain: blg.de
+[AGENT-GENERAL] Fields to enrich: role
+[AGENT-GENERAL] Searching: "BLG LOGISTICS GROUP" role person role title
+[AGENT-GENERAL] Found 3 results
+[AGENT-GENERAL] Searching: site:blg.de role person role title
+[AGENT-GENERAL] Total unique results: 3
+Starting corroborated extraction for fields: [ 'role' ]
+[OPENAI] Raw corroboration response sample: {
+  firstField: 'role',
+  evidence: [
+    {
+      value: 'CEO',
+      source_url: 'https://www.glassdoor.com/job-listing/senior-group-leader-blg-logistics-group-JV_IC3821621_KO0,19_KE20,39.htm?jl=1009757018916',
+      exact_text: 'Approve of CEO - CEO: Kirk Atkinson',
+      confidence: 1
+    }
+  ]
+}
+[VALIDATION] Filtering out title-like evidence for role: Approve of CEO - CEO: Kirk Atkinson
+[VALIDATION] No valid evidence found for role, skipping field
+[ORCHESTRATOR] GENERAL-AGENT completed, found 0 values
+[Orchestrator] ====== ENRICHMENT SUMMARY ======
+[Orchestrator] Email: tina.allerheiligen@blg.de
+[Orchestrator] Successfully enriched: 3/4 fields
+[Orchestrator] Enriched fields: company_name, company_description, website
+[Orchestrator] Missing fields: role
+[Orchestrator] ================================
+[AgentEnrichmentStrategy] Orchestrator returned 3 enriched fields
+[BatchOrchestrator] Cache hit for domain: blg.de
+[AgentEnrichmentStrategy] Starting enrichment for email: vivien.kretschmann@blg.de
+[AgentEnrichmentStrategy] Requested fields: company_name, company_description, website, role
+[AgentEnrichmentStrategy] Delegating to AgentOrchestrator
+[Orchestrator] Starting enrichment for email: vivien.kretschmann@blg.de
+[Orchestrator] Using cached company data for: blg.de
+[Orchestrator] Email context: domain=blg.de, company=Blg
+[Orchestrator] Categorizing 4 fields for agent assignment...
+[Orchestrator] Filtering out already-enriched company fields
+[Orchestrator] Remaining fields after filtering: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Feature flag status - FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE: true
+[Orchestrator] FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE enabled - filtering to contact-only fields
+[Orchestrator] Keeping person fields for enrichment: role
+[Orchestrator] After contact-only filtering: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Field categories: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Agents to be used: general-agent
+[Orchestrator] Agent execution order: general-agent
+[Orchestrator] Activating GENERAL-AGENT for fields: role
+[AGENT-GENERAL] Starting General Information Phase
+[AGENT-GENERAL] Company name: BLG LOGISTICS GROUP
+[AGENT-GENERAL] Company domain: blg.de
+[AGENT-GENERAL] Fields to enrich: role
+[AGENT-GENERAL] Searching: "BLG LOGISTICS GROUP" role person role title
+[AGENT-GENERAL] Found 3 results
+[AGENT-GENERAL] Searching: site:blg.de role person role title
+[AGENT-GENERAL] Total unique results: 3
+Starting corroborated extraction for fields: [ 'role' ]
+[OPENAI] Raw corroboration response sample: {
+  firstField: 'role',
+  evidence: [
+    {
+      value: 'CEO',
+      source_url: 'https://www.glassdoor.com/job-listing/senior-group-leader-blg-logistics-group-JV_IC3821621_KO0,19_KE20,39.htm?jl=1009757018916#',
+      exact_text: 'Approve of CEO\n- CEO: Kirk Atkinson',
+      confidence: 1
+    }
+  ]
+}
+[VALIDATION] Filtering out title-like evidence for role: Approve of CEO
+- CEO: Kirk Atkinson
+[VALIDATION] No valid evidence found for role, skipping field
+[ORCHESTRATOR] GENERAL-AGENT completed, found 0 values
+[Orchestrator] ====== ENRICHMENT SUMMARY ======
+[Orchestrator] Email: vivien.kretschmann@blg.de
+[Orchestrator] Successfully enriched: 3/4 fields
+[Orchestrator] Enriched fields: company_name, company_description, website
+[Orchestrator] Missing fields: role
+[Orchestrator] ================================
+[AgentEnrichmentStrategy] Orchestrator returned 3 enriched fields
+[BatchOrchestrator] Cache hit for domain: blg.de
+[AgentEnrichmentStrategy] Starting enrichment for email: britt.van-delden@blg.de
+[AgentEnrichmentStrategy] Requested fields: company_name, company_description, website, role
+[AgentEnrichmentStrategy] Delegating to AgentOrchestrator
+[Orchestrator] Starting enrichment for email: britt.van-delden@blg.de
+[Orchestrator] Using cached company data for: blg.de
+[Orchestrator] Email context: domain=blg.de, company=Blg
+[Orchestrator] Categorizing 4 fields for agent assignment...
+[Orchestrator] Filtering out already-enriched company fields
+[Orchestrator] Remaining fields after filtering: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Feature flag status - FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE: true
+[Orchestrator] FEATURE_CONTACT_ONLY_AFTER_FIRST_SCRAPE enabled - filtering to contact-only fields
+[Orchestrator] Keeping person fields for enrichment: role
+[Orchestrator] After contact-only filtering: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Field categories: discovery=0, profile=0, metrics=0, funding=0, techStack=0, other=1
+[Orchestrator] Agents to be used: general-agent
+[Orchestrator] Agent execution order: general-agent
+[Orchestrator] Activating GENERAL-AGENT for fields: role
+[AGENT-GENERAL] Starting General Information Phase
+[AGENT-GENERAL] Company name: BLG LOGISTICS GROUP
+[AGENT-GENERAL] Company domain: blg.de
+[AGENT-GENERAL] Fields to enrich: role
+[AGENT-GENERAL] Searching: "BLG LOGISTICS GROUP" role person role title
+[AGENT-GENERAL] Found 3 results
+[AGENT-GENERAL] Searching: site:blg.de role person role title
+[AGENT-GENERAL] Total unique results: 3
+Starting corroborated extraction for fields: [ 'role' ]
+[OPENAI] Raw corroboration response sample: {
+  firstField: 'role',
+  evidence: [
+    {
+      value: 'CEO',
+      source_url: 'https://www.glassdoor.com/job-listing/senior-group-leader-blg-logistics-group-JV_IC3821621_KO0,19_KE20,39.htm?jl=1009757018916',
+      exact_text: 'Approve of CEO\n- CEO: Kirk Atkinson',
+      confidence: 1
+    }
+  ]
+}
+[VALIDATION] Filtering out title-like evidence for role: Approve of CEO
+- CEO: Kirk Atkinson
+[VALIDATION] No valid evidence found for role, skipping field
+[ORCHESTRATOR] GENERAL-AGENT completed, found 0 values
+[Orchestrator] ====== ENRICHMENT SUMMARY ======
+[Orchestrator] Email: britt.van-delden@blg.de
+[Orchestrator] Successfully enriched: 3/4 fields
+[Orchestrator] Enriched fields: company_name, company_description, website
+[Orchestrator] Missing fields: role
+[Orchestrator] ================================
+[AgentEnrichmentStrategy] Orchestrator returned 3 enriched fields
+[BatchOrchestrator] Batch completed in 237194ms
+[BatchOrchestrator] Success rate: 3/3
+[BatchOrchestrator] Cache hit rate: 100.0%
+ POST /api/enrich 200 in 237916ms
+[?25h
